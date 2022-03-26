@@ -1,0 +1,40 @@
+# User credentials 
+:local WGUser ""
+:local WGUserPublicKey ""
+:local WGUserPrivateKey ""
+
+# Set options
+:local WGInterfaceName ""
+:local WGComment ""
+:local WGAddressList 
+:local WGPort 
+:local WGServerPublicKey 
+
+# Configure interface 
+/interface wireguard add name=$WGInterfaceName listen-port=$WGPort comment=$WGComment;
+:set WGServerPublicKey [/interface/wireguard/get value-name=public-key [/interface/wireguard/find name=$WGInterfaceName]];
+:log info message="Wireguard interface added"
+/interface wireguard peers add interface=$WGInterfaceName public-key=$WGUserPublicKey allowed-address=$WGAddressList comment=($WGUser . " " . WGComment);
+:log info message="Wireguard peer added"
+
+# Configure IP
+/ip address add address=$WGAddressList interface=$WGInterfaceName comment=$WGComment;
+:log info message="Wireguard address list set"
+/ip firewall filter add action=accept chain=input protocol=udp dst-port=$WGPort log=no log-prefix=$WGInterfaceName comment=$WGComment place-before=3;
+:log info message="Wiregiard firewall rule set"
+
+# Get external IP
+:local ip [/ip cloud get value=public-address];
+:log info message="Get ip"
+:put $ip
+:local WGConfFile "WG_$WGUser" 
+
+# Generate config
+/file 
+print file=$WGConfFile
+:delay 2s;
+set $WGConfFile contents=("[Interface]\r\n" . "PrivateKey = $UserPrivateKey\r\n" . "Address = $WGAddressList\r\n\r\n" . "[Peer]\r\n" . "PublicKey = $WGServerPublicKey\r\n" . "AllowedIPs = 0.0.0.0/0\r\n" . "Endpoint = $ip:$WGPort");
+:log info message=$WGServerPublicKey; :put "Your WG public key: $WGServerPublicKey"
+:log info message=$ip; :put "Your IP: $ip"
+
+
