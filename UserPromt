@@ -1,0 +1,5 @@
+# function to prompt user to enter a value
+:global read do={:return}
+
+# storing the value entered by the user
+:local userinput [$read]
