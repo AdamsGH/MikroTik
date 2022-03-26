@@ -1,0 +1,16 @@
+:local CAstatus "# CA cert downloaded"
+:local CAimport "# CA cert imported"
+:local CAwait "Wait a little bit...\r\n"
+:local DoH "BLB DoH set!\r\nlab.sys-adm.in"
+
+/tool fetch url=https://curl.se/ca/cacert.pem
+:log info message=$CAstatus; :put $CAstatus;
+:delay 2s;
+
+/certificate import file-name=cacert.pem passphrase=""
+:log info message=$CAwait; :put $CAwait;
+:delay 15s;
+:log info message=$CAimport; :put $CAimport;
+
+/ip dns set use-doh-server=https://bld.sys-adm.in/dns-query verify-doh-cert=yes servers=""
+:log info message=$DoH; :put $DoH;
